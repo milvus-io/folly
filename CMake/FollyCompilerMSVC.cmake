@@ -289,6 +289,7 @@ function(apply_folly_compile_options_to_target THETARGET)
   # And the extra defines:
   target_compile_definitions(${THETARGET}
     PUBLIC
+      NOMINMAX
       _CRT_NONSTDC_NO_WARNINGS # Don't deprecate posix names of functions.
       _CRT_SECURE_NO_WARNINGS # Don't deprecate the non _s versions of various standard library functions, because safety is for chumps.
       _SCL_SECURE_NO_WARNINGS # Don't deprecate the non _s versions of various standard library functions, because safety is for chumps.
