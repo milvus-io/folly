@@ -25,7 +25,7 @@ class FollyConan(ConanFile):
         "fPIC": [True, False],
         "use_sse4_2": [True, False],
     }
-    default_options = {"shared": False, "fPIC": True, "use_sse4_2": False}
+    default_options = {"shared": False, "fPIC": True, "use_sse4_2": True}
     exports_sources = (
         "folly/*",
         "CMakelists.txt",
@@ -88,7 +88,6 @@ class FollyConan(ConanFile):
             self.requires("libdwarf/20191104")
         self.requires("libsodium/cci.20220430")
         self.requires("xz_utils/5.4.0")
-        # FIXME: Causing compilation issues on clang: self.requires("jemalloc/5.2.1")
         if self.settings.os == "Linux":
             self.requires("libiberty/9.1.0")
             self.requires("libunwind/1.6.2")
@@ -129,9 +128,6 @@ class FollyConan(ConanFile):
             raise ConanInvalidConfiguration(
                 "Conan support for non-Linux platforms starts with Folly version 2022.01.31.00"
             )
-
-        # if self.settings.os == "Macos" and self.settings.arch != "x86_64":
-        #     raise ConanInvalidConfiguration("Conan currently requires a 64bit target architecture for Folly on Macos")
 
         if self.settings.os == "Windows" and self.settings.arch != "x86_64":
             raise ConanInvalidConfiguration(
@@ -195,14 +191,6 @@ class FollyConan(ConanFile):
             raise ConanInvalidConfiguration(
                 f"{self.ref} can use the option use_sse4_2 only on x86 and x86_64 archs."
             )
-
-    # def source(self):
-    #     files.get(
-    #         self,
-    #         **self.conan_data["sources"][self.version],
-    #         destination=self._source_subfolder,
-    #         strip_root=True,
-    #     )
 
     def layout(self):
         cmake_layout(self)
