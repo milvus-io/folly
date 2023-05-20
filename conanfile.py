@@ -315,7 +315,7 @@ class FollyConan(ConanFile):
             )
 
         if Version(self.version) >= "2020.08.10.00":
-            self.cpp_info.components["libfolly"].requires.append("fmt::fmt")
+            self.cpp_info.components["libfolly"].requires.append("fmt::fmt-header-only")
             if self.settings.os == "Linux":
                 self.cpp_info.components["libfolly"].defines.extend(
                     ["FOLLY_HAVE_ELF", "FOLLY_HAVE_DWARF"]
