@@ -304,7 +304,7 @@ if (NOT DEFINED fmt_CONFIG)
     # Fallback on a normal search on the current system
     find_package(Fmt MODULE REQUIRED)
 endif()
-target_link_libraries(folly_deps INTERFACE fmt::fmt)
+target_link_libraries(folly_deps INTERFACE fmt::fmt-header-only)
 
 list(REMOVE_DUPLICATES FOLLY_INCLUDE_DIRECTORIES)
 target_include_directories(folly_deps INTERFACE ${FOLLY_INCLUDE_DIRECTORIES})
