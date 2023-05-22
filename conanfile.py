@@ -25,7 +25,12 @@ class FollyConan(ConanFile):
         "fPIC": [True, False],
         "use_sse4_2": [True, False],
     }
-    default_options = {"shared": False, "fPIC": True, "use_sse4_2": True}
+    default_options = {
+        "shared": False,
+        "fPIC": True,
+        "use_sse4_2": True,
+        "fmt:header_only": True,
+    }
     exports_sources = (
         "folly/*",
         "CMakelists.txt",
@@ -315,7 +320,6 @@ class FollyConan(ConanFile):
             )
 
         if Version(self.version) >= "2020.08.10.00":
-            self.cpp_info.components["libfolly"].requires.append("fmt::fmt-header-only")
             if self.settings.os == "Linux":
                 self.cpp_info.components["libfolly"].defines.extend(
                     ["FOLLY_HAVE_ELF", "FOLLY_HAVE_DWARF"]
