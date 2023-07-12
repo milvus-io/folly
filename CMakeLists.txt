@@ -97,7 +97,7 @@ if("${CMAKE_LIBRARY_ARCHITECTURE}" STREQUAL "")
   # CMAKE_LIBRARY_ARCHITECTURE is not always set, so we have to assume
   # arch might be x86_64
   message(WARNING "CMAKE_LIBRARY_ARCHITECTURE not set, assuming x86_64")
-  set(IS_X86_64_ARCH ON)
+  set(IS_X86_64_ARCH OFF)
 else()
   string(FIND "${CMAKE_LIBRARY_ARCHITECTURE}" "x86_64" IS_X86_64_ARCH)
   if(IS_X86_64_ARCH STREQUAL "-1")
