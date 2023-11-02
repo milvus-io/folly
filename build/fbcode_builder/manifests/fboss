@@ -27,12 +27,10 @@ zstd
 fatal
 fbthrift
 iproute2
-libmnl
 libusb
 libcurl
 libnl
 libsai
-OpenNSA
 re2
 python
 yaml-cpp
