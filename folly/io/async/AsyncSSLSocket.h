@@ -63,7 +63,7 @@ class AsyncSSLSocketConnector;
  * this connection.  For client connections, the timeout should not be
  * active if there are no requests pending on the connection.
  * Additionally, if a client has multiple pending requests, it will
- * ususally want a separate timeout for each request, rather than a
+ * usually want a separate timeout for each request, rather than a
  * single read timeout.
  *
  * The write API is fairly intuitive: a user can request to send a
@@ -205,6 +205,7 @@ class AsyncSSLSocket : public AsyncSocket {
     std::shared_ptr<CertificateIdentityVerifier> verifier;
     bool deferSecurityNegotiation{};
     bool isServer{};
+    std::string serverName;
   };
 
   /**
@@ -288,6 +289,17 @@ class AsyncSSLSocket : public AsyncSocket {
    * Helper function to create a server/client shared_ptr<AsyncSSLSocket>.
    */
   static UniquePtr newSocket(
+      std::shared_ptr<folly::SSLContext> ctx,
+      EventBase* evb,
+      Options&& options) {
+    return AsyncSSLSocket::UniquePtr(
+        new AsyncSSLSocket(std::move(ctx), evb, std::move(options)));
+  }
+
+  /**
+   * Helper function to create a server/client shared_ptr<AsyncSSLSocket>.
+   */
+  static UniquePtr newSocket(
       const std::shared_ptr<folly::SSLContext>& ctx,
       EventBase* evb,
       NetworkSocket fd,
@@ -366,8 +378,8 @@ class AsyncSSLSocket : public AsyncSocket {
    * error. In that case, the READ/WRITE event should be registered,
    * and a flag (e.g., writeBlockedOnRead) should be set to indiciate
    * the condition. In the next invocation of read/write callback, if
-   * the flag is on, performWrite()/performRead() should be called in
-   * addition to the normal call to performRead()/performWrite(), and
+   * the flag is on, performWrite()/performReadMsg() should be called in
+   * addition to the normal call to performReadMsg()/performWrite(), and
    * the flag should be reset.
    */
 
@@ -883,6 +895,8 @@ class AsyncSSLSocket : public AsyncSocket {
 
   void init();
 
+  ReadResult performReadSingle(void* buf, const size_t buflen);
+
   // Need to clean this up during a cancel if callback hasn't fired yet.
   AsyncSSLSocketConnector* allocatedConnectCallback_;
 
@@ -912,14 +926,15 @@ class AsyncSSLSocket : public AsyncSocket {
   void handleInitialReadWrite() noexcept override {}
 
   WriteResult interpretSSLError(int rc, int error);
-  ReadResult performRead(void** buf, size_t* buflen, size_t* offset) override;
-  ReadResult performReadv(struct iovec* iovs, size_t num) override;
+  ReadResult performReadMsg(
+      struct ::msghdr&, AsyncReader::ReadCallback::ReadMode) override;
   WriteResult performWrite(
       const iovec* vec,
       uint32_t count,
       WriteFlags flags,
       uint32_t* countWritten,
-      uint32_t* partialWritten) override;
+      uint32_t* partialWritten,
+      WriteRequestTag writeTag) override;
 
   ssize_t performWriteIovec(
       const iovec* vec,

@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
+#include <system_error>
+
 #include <folly/SharedMutex.h>
 
 #include <folly/Indestructible.h>
+#include <folly/lang/Exception.h>
+#include <folly/portability/SysResource.h>
 
 namespace folly {
 // Explicitly instantiate SharedMutex here:
@@ -49,5 +53,29 @@ uint32_t getMaxDeferredReadersSlow(relaxed_atomic<uint32_t>& cache) {
   cache = maxDeferredReaders;
   return maxDeferredReaders;
 }
+
+long getCurrentThreadInvoluntaryContextSwitchCount() {
+#ifdef RUSAGE_THREAD
+  struct rusage usage;
+  if (getrusage(RUSAGE_THREAD, &usage)) {
+    return 0;
+  } else {
+    return usage.ru_nivcsw;
+  }
+#else
+  return 0;
+#endif
+}
+
+[[noreturn]] void throwOperationNotPermitted() {
+  folly::throw_exception<std::system_error>(
+      std::make_error_code(std::errc::operation_not_permitted));
+}
+
+[[noreturn]] void throwDeadlockWouldOccur() {
+  folly::throw_exception<std::system_error>(
+      std::make_error_code(std::errc::resource_deadlock_would_occur));
+}
+
 } // namespace shared_mutex_detail
 } // namespace folly

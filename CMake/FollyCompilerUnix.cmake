@@ -28,12 +28,10 @@ set(
 )
 mark_as_advanced(CXX_STD)
 
-set(CMAKE_CXX_FLAGS_COMMON "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_COMMON "-g -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_COMMON}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_COMMON}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_COMMON} -O3")
 
-# Note that CMAKE_REQUIRED_FLAGS must be a string, not a list
-set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -std=${CXX_STD}")
 list(APPEND CMAKE_REQUIRED_DEFINITIONS "-D_GNU_SOURCE")
 function(apply_folly_compile_options_to_target THETARGET)
   target_compile_definitions(${THETARGET}
@@ -44,6 +42,7 @@ function(apply_folly_compile_options_to_target THETARGET)
   target_compile_options(${THETARGET}
     PRIVATE
       -std=${CXX_STD}
+      -g
       -finput-charset=UTF-8
       -fsigned-char
       -Wall

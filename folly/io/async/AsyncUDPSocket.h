@@ -143,6 +143,8 @@ class AsyncUDPSocket : public EventHandler {
 
   using IOBufFreeFunc = folly::Function<void(std::unique_ptr<folly::IOBuf>&&)>;
 
+  using AdditionalCmsgsFunc = folly::Function<folly::Optional<SocketCmsgMap>()>;
+
   struct WriteOptions {
     WriteOptions() = default;
     WriteOptions(int gsoVal, bool zerocopyVal)
@@ -236,13 +238,18 @@ class AsyncUDPSocket : public EventHandler {
   /**
    * Set extra control messages to send
    */
-  virtual void setCmsgs(const SocketOptionMap& cmsgs);
+  virtual void setCmsgs(const SocketCmsgMap& cmsgs);
   virtual void setNontrivialCmsgs(
-      const SocketNontrivialOptionMap& nontrivialCmsgs);
+      const SocketNontrivialCmsgMap& nontrivialCmsgs);
 
-  virtual void appendCmsgs(const SocketOptionMap& cmsgs);
+  virtual void appendCmsgs(const SocketCmsgMap& cmsgs);
   virtual void appendNontrivialCmsgs(
-      const SocketNontrivialOptionMap& nontrivialCmsgs);
+      const SocketNontrivialCmsgMap& nontrivialCmsgs);
+  virtual void setAdditionalCmsgsFunc(
+      AdditionalCmsgsFunc&& additionalCmsgsFunc) {
+    additionalCmsgsFunc_ = std::move(additionalCmsgsFunc);
+    dynamicCmsgs_.clear();
+  }
 
   /**
    * Send the data in buffer to destination. Returns the return code from
@@ -275,7 +282,7 @@ class AsyncUDPSocket : public EventHandler {
   virtual ssize_t writeGSO(
       const folly::SocketAddress& address,
       const std::unique_ptr<folly::IOBuf>& buf,
-      int gso);
+      WriteOptions options);
 
   virtual ssize_t writeChain(
       const folly::SocketAddress& address,
@@ -287,7 +294,7 @@ class AsyncUDPSocket : public EventHandler {
    * ::sendmmsg.
    * bufs is an array of std::unique_ptr<folly::IOBuf>
    * of size num
-   * gso is an array with the generic segmentation offload values or nullptr
+   * options is an array of WriteOptions or nullptr
    *  Before calling writeGSO with a positive value
    *  verify GSO is supported on this platform by calling getGSO
    */
@@ -295,7 +302,7 @@ class AsyncUDPSocket : public EventHandler {
       Range<SocketAddress const*> addrs,
       const std::unique_ptr<folly::IOBuf>* bufs,
       size_t count,
-      const int* gso);
+      const WriteOptions* options);
 
   /**
    * Send data in iovec to destination. Returns the return code from sendmsg.
@@ -304,7 +311,7 @@ class AsyncUDPSocket : public EventHandler {
       const folly::SocketAddress& address,
       const struct iovec* vec,
       size_t iovec_len,
-      int gso);
+      WriteOptions options);
 
   virtual ssize_t writev(
       const folly::SocketAddress& address,
@@ -480,9 +487,6 @@ class AsyncUDPSocket : public EventHandler {
   virtual void applyOptions(
       const SocketOptionMap& options, SocketOptionKey::ApplyPos pos);
 
-  virtual void applyNontrivialOptions(
-      const SocketNontrivialOptionMap& options, SocketOptionKey::ApplyPos pos);
-
   /**
    * Override netops::Dispatcher to be used for netops:: calls.
    *
@@ -537,7 +541,7 @@ class AsyncUDPSocket : public EventHandler {
       struct mmsghdr* msgvec,
       struct iovec* iov,
       size_t iov_count,
-      const int* gso,
+      const WriteOptions* options,
       char* control);
 
   virtual int writeImpl(
@@ -545,11 +549,11 @@ class AsyncUDPSocket : public EventHandler {
       const std::unique_ptr<folly::IOBuf>* bufs,
       size_t count,
       struct mmsghdr* msgvec,
-      const int* gso,
+      const WriteOptions* options,
       char* control);
 
   virtual ssize_t writevImpl(
-      netops::Msgheader* msg, FOLLY_MAYBE_UNUSED int gso);
+      netops::Msgheader* msg, FOLLY_MAYBE_UNUSED WriteOptions options);
 
   size_t handleErrMessages() noexcept;
 
@@ -568,6 +572,7 @@ class AsyncUDPSocket : public EventHandler {
 
   void handleRead() noexcept;
   bool updateRegistration() noexcept;
+  void maybeUpdateDynamicCmsgs() noexcept;
 
   EventBase* eventBase_;
   folly::SocketAddress localAddress_;
@@ -628,9 +633,13 @@ class AsyncUDPSocket : public EventHandler {
 
   IOBufFreeFunc ioBufFreeFunc_;
 
-  SocketOptionMap cmsgs_;
+  SocketCmsgMap defaultCmsgs_;
+  SocketCmsgMap dynamicCmsgs_;
+  SocketCmsgMap* cmsgs_{&defaultCmsgs_};
 
-  SocketNontrivialOptionMap nontrivialCmsgs_;
+  SocketNontrivialCmsgMap nontrivialCmsgs_;
+
+  AdditionalCmsgsFunc additionalCmsgsFunc_;
 
   netops::DispatcherContainer netops_;
 };
