@@ -139,22 +139,6 @@ class FollyConan(ConanFile):
                 "Folly requires a 64bit target architecture on Windows"
             )
 
-        if self.settings.os in ["Macos", "Windows"] and self.options.shared:
-            raise ConanInvalidConfiguration(
-                "Folly could not be built on {} as shared library".format(
-                    self.settings.os
-                )
-            )
-
-        if (
-            Version(self.version) >= "2020.08.10.00"
-            and self.settings.compiler == "clang"
-            and self.options.shared
-        ):
-            raise ConanInvalidConfiguration(
-                "Folly could not be built by clang as a shared library"
-            )
-
         if self.options["boost"].header_only:
             raise ConanInvalidConfiguration(
                 "Folly could not be built with a header only Boost"

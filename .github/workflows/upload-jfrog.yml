@@ -20,8 +20,8 @@ jobs:
         include:
           - name: Ubuntu 20.04
             os: ubuntu20.04
-          - name: Centos7
-            os: centos7
+          - name: Amazonlinux 2023
+            os: amazonlinux2023
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -46,17 +46,16 @@ jobs:
         run: |
           cat << EOF > build.sh
           #!/usr/bin/env bash
-
-          conan remote add default-conan-local https://milvus01.jfrog.io/artifactory/api/conan/default-conan-local 
+          conan remote add default-conan-local https://milvus01.jfrog.io/artifactory/api/conan/default-conan-local
           if [[ `gcc -v 2>&1 | sed -n 's/.*\(--with-default-libstdcxx-abi\)=\(\w*\).*/\2/p'` == "gcc4" ]]; then
             conan create . folly/${{ env.VERSION }}@milvus/dev --build=missing
-          else 
-            conan create . folly/${{ env.VERSION }}@milvus/dev --build=missing -s compiler.libcxx=libstdc++11 
-          fi 
+          else
+            conan create . folly/${{ env.VERSION }}@milvus/dev --build=missing -s compiler.libcxx=libstdc++11
+          fi
           EOF
           chmod +x build.sh
           docker run -u ${{env.UID}}:${{env.GID}} -e CONAN_REVISIONS_ENABLED=1 -v $(pwd)/.docker/conan-cache:/home/milvus/.conan:delegated -v $(pwd):/folly:delegated -w /folly milvusdb/milvus-env:amd64-${{ matrix.os }}-20230215-5351fee bash -c /folly/build.sh
       - name: Upload
         run: |
-          docker run -u ${{env.UID}}:${{env.GID}} -e CONAN_REVISIONS_ENABLED=1 -v $(pwd)/.docker/conan-cache:/home/milvus/.conan:delegated milvusdb/milvus-env:amd64-${{ matrix.os }}-20230215-5351fee conan user -p ${{ secrets.JFROG_PASSWORD }} -r default-conan-local ${{ secrets.JFROG_USERNAME }} 
-          docker run -u ${{env.UID}}:${{env.GID}} -e CONAN_REVISIONS_ENABLED=1 -v $(pwd)/.docker/conan-cache:/home/milvus/.conan:delegated milvusdb/milvus-env:amd64-${{ matrix.os }}-20230215-5351fee conan upload folly/${{ env.VERSION }}@milvus/dev -r default-conan-local --all
+          docker run -e CONAN_REVISIONS_ENABLED=1 -v $(pwd)/.docker/conan-cache:/root/.conan:delegated milvusdb/milvus-env:${{ matrix.os }}-20230907-2a755ba conan user -p ${{ secrets.JFROG_PASSWORD }} -r default-conan-local ${{ secrets.JFROG_USERNAME }}
+          docker run -e CONAN_REVISIONS_ENABLED=1 -v $(pwd)/.docker/conan-cache:/root/.conan:delegated milvusdb/milvus-env:${{ matrix.os }}-20230907-2a755ba conan upload folly/${{ env.VERSION }}@milvus/dev -r default-conan-local --all
