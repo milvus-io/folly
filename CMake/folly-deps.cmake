@@ -35,7 +35,7 @@ else()
 endif()
 set(Boost_USE_STATIC_LIBS "${FOLLY_BOOST_LINK_STATIC}")
 
-find_package(Boost  
+find_package(Boost
   COMPONENTS
     context
     filesystem
@@ -49,7 +49,7 @@ list(APPEND FOLLY_LINK_LIBRARIES ${Boost_LIBRARIES})
 list(APPEND FOLLY_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
 
 find_package(double-conversion  REQUIRED)
-list(APPEND FOLLY_LINK_LIBRARIES ${double-conversion_LIBRARY})
+list(APPEND FOLLY_LINK_LIBRARIES double-conversion::double-conversion)
 list(APPEND FOLLY_INCLUDE_DIRECTORIES ${double-conversion_INCLUDE_DIR})
 
 find_package(gflags  REQUIRED)
@@ -63,11 +63,11 @@ endif()
 
 find_package(glog  REQUIRED)
 set(FOLLY_HAVE_LIBGLOG ${glog_FOUND})
-list(APPEND FOLLY_LINK_LIBRARIES ${glog_LIBRARY})
+list(APPEND FOLLY_LINK_LIBRARIES glog::glog)
 list(APPEND FOLLY_INCLUDE_DIRECTORIES ${glog_INCLUDE_DIR})
 
 find_package(Libevent  REQUIRED)
-list(APPEND FOLLY_LINK_LIBRARIES ${Libevent_LIB})
+list(APPEND FOLLY_LINK_LIBRARIES libevent::libevent)
 list(APPEND FOLLY_INCLUDE_DIRECTORIES ${Libevent_INCLUDE_DIR})
 
 find_package(ZLIB MODULE)
