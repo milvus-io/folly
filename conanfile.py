@@ -203,11 +203,11 @@ class FollyConan(ConanFile):
             tc.preprocessor_definitions["FOLLY_SSE"] = "4"
             tc.preprocessor_definitions["FOLLY_SSE_MINOR"] = "2"
             if not is_msvc(self):
-                tc.variables["CMAKE_C_FLAGS"] = "-mfma"
-                tc.variables["CMAKE_CXX_FLAGS"] = "-mfma"
+                tc.variables["CMAKE_C_FLAGS"] = "-msse4.2"
+                tc.variables["CMAKE_CXX_FLAGS"] = "-msse4.2"
             else:
-                tc.variables["CMAKE_C_FLAGS"] = "/arch:FMA"
-                tc.variables["CMAKE_CXX_FLAGS"] = "/arch:FMA"
+                tc.variables["CMAKE_C_FLAGS"] = "/arch:SSE4.2"
+                tc.variables["CMAKE_CXX_FLAGS"] = "/arch:SSE4.2"
 
         tc.variables["CMAKE_POSITION_INDEPENDENT_CODE"] = self.options.get_safe(
             "fPIC", True
