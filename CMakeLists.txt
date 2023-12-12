@@ -143,6 +143,8 @@ include(FollyFunctions)
 
 include(folly-deps) # Find the required packages
 include(FollyConfigChecks)
+# Disable unwind
+set(FOLLY_HAVE_LIBUNWIND OFF)
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/CMake/folly-config.h.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/folly/folly-config.h
