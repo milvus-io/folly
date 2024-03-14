@@ -7,6 +7,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.errors import ConanInvalidConfiguration
 from conans import tools
 import os
+import platform
 
 required_conan_version = ">=1.45.0"
 
@@ -200,14 +201,17 @@ class FollyConan(ConanFile):
             "x86",
             "x86_64",
         ]:
-            tc.preprocessor_definitions["FOLLY_SSE"] = "4"
-            tc.preprocessor_definitions["FOLLY_SSE_MINOR"] = "2"
-            if not is_msvc(self):
-                tc.variables["CMAKE_C_FLAGS"] = "-msse4.2"
-                tc.variables["CMAKE_CXX_FLAGS"] = "-msse4.2"
-            else:
-                tc.variables["CMAKE_C_FLAGS"] = "/arch:SSE4.2"
-                tc.variables["CMAKE_CXX_FLAGS"] = "/arch:SSE4.2"
+            # sometimes conan's arch will go wrong to add msse4.2 on arm+gpu machine
+            # double check to make sure
+            if platform.machine() in ["x86", "x86_64"]:
+                tc.preprocessor_definitions["FOLLY_SSE"] = "4"
+                tc.preprocessor_definitions["FOLLY_SSE_MINOR"] = "2"
+                if not is_msvc(self):
+                    tc.variables["CMAKE_C_FLAGS"] = "-msse4.2"
+                    tc.variables["CMAKE_CXX_FLAGS"] = "-msse4.2"
+                else:
+                    tc.variables["CMAKE_C_FLAGS"] = "/arch:SSE4.2"
+                    tc.variables["CMAKE_CXX_FLAGS"] = "/arch:SSE4.2"
 
         tc.variables["CMAKE_POSITION_INDEPENDENT_CODE"] = self.options.get_safe(
             "fPIC", True
