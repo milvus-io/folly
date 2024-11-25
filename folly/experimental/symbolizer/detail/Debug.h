@@ -28,7 +28,11 @@ namespace detail {
 
 #if defined(__linux__) && FOLLY_HAVE_ELF && FOLLY_HAVE_DWARF
 inline struct r_debug* get_r_debug() {
+#ifdef __ANDROID__
+  return nullptr;
+#else
   return &_r_debug;
+#endif
 }
 #elif defined(__APPLE__)
 extern struct r_debug _r_debug;

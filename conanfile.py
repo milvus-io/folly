@@ -70,6 +70,11 @@ class FollyConan(ConanFile):
                 pass
         if str(self.settings.arch) not in ["x86", "x86_64"]:
             del self.options.use_sse4_2
+        if self.settings.os == "Android":
+            self.options["boost"].without_locale = True
+            self.options["boost"].without_test = True
+            self.options["boost"].without_stacktrace = True
+            self.options["libevent"].disable_threads = True
 
     def configure(self):
         if self.options.shared:
@@ -79,7 +84,7 @@ class FollyConan(ConanFile):
                 pass
 
     def requirements(self):
-        self.requires("boost/1.81.0")
+        self.requires("boost/1.82.0")
         self.requires("bzip2/1.0.8")
         self.requires("double-conversion/3.2.1")
         self.requires("gflags/2.2.2")
@@ -240,6 +245,19 @@ class FollyConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+        cmake._cache_variables["FOLLY_HAVE_UNALIGNED_ACCESS_EXITCODE"] = "0"
+        cmake._cache_variables[
+            "FOLLY_HAVE_UNALIGNED_ACCESS_EXITCODE__TRYRUN_OUTPUT"
+        ] = ""
+        cmake._cache_variables["FOLLY_HAVE_LINUX_VDSO_EXITCODE"] = "0"
+        cmake._cache_variables["FOLLY_HAVE_LINUX_VDSO_EXITCODE__TRYRUN_OUTPUT"] = ""
+        cmake._cache_variables["FOLLY_HAVE_WCHAR_SUPPORT_EXITCODE"] = "0"
+        cmake._cache_variables["FOLLY_HAVE_WCHAR_SUPPORT_EXITCODE__TRYRUN_OUTPUT"] = ""
+        cmake._cache_variables["HAVE_VSNPRINTF_ERRORS_EXITCODE"] = "0"
+        cmake._cache_variables["HAVE_VSNPRINTF_ERRORS_EXITCODE__TRYRUN_OUTPUT"] = ""
+        cmake._cache_variables["FOLLY_HAVE_WEAK_SYMBOLS_EXITCODE"] = "0"
+        cmake._cache_variables["FOLLY_HAVE_WEAK_SYMBOLS_EXITCODE__TRYRUN_OUTPUT"] = ""
+
         cmake.configure()
         cmake.build()
 

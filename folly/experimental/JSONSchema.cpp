@@ -136,7 +136,11 @@ struct MultipleOfValidator final : IValidator {
       return none;
     }
     if (schema_.isDouble() || value.isDouble()) {
+#ifdef __ANDROID__
+      const auto rem = remainder(value.asDouble(), schema_.asDouble());
+#else
       const auto rem = folly::remainder(value.asDouble(), schema_.asDouble());
+#endif
       if (std::abs(rem) > std::numeric_limits<double>::epsilon()) {
         return makeError("a multiple of ", schema_, value);
       }

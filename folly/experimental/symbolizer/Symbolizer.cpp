@@ -244,9 +244,13 @@ size_t Symbolizer::symbolize(
         }
       }
 
-      // Get the unrelocated, ELF-relative address by normalizing via the
-      // address at which the object is loaded.
+// Get the unrelocated, ELF-relative address by normalizing via the
+// address at which the object is loaded.
+#ifdef __ANDROID__
+      auto const adjusted = addr - static_cast<uintptr_t>(lmap->l_addr);
+#else
       auto const adjusted = addr - reinterpret_cast<uintptr_t>(lmap->l_addr);
+#endif
       size_t numInlined = 0;
       if (elfFile->getSectionContainingAddress(adjusted)) {
         if (mode_ == LocationInfoMode::FULL_WITH_INLINE &&
@@ -300,7 +304,9 @@ FastStackTracePrinter::FastStackTracePrinter(
 FastStackTracePrinter::~FastStackTracePrinter() = default;
 
 void FastStackTracePrinter::printStackTrace(bool symbolize) {
-  SCOPE_EXIT { printer_->flush(); };
+  SCOPE_EXIT {
+    printer_->flush();
+  };
 
   FrameArray<kMaxStackTraceDepth> addresses;
   auto printStack = [this, &addresses, &symbolize] {
@@ -399,7 +405,9 @@ void SafeStackTracePrinter::printUnsymbolizedStackTrace() {
 }
 
 void SafeStackTracePrinter::printStackTrace(bool symbolize) {
-  SCOPE_EXIT { flush(); };
+  SCOPE_EXIT {
+    flush();
+  };
 
   // Skip the getStackTrace frame
   if (!getStackTraceSafe(*addresses_)) {
@@ -550,8 +558,8 @@ void UnsafeSelfAllocateStackTracePrinter::printSymbolizedStackTrace() {
 
   makecontext(
       &alt,
-      (void (*)())(void (*)(
-          UnsafeSelfAllocateStackTracePrinter*))(contextStart),
+      (void (*)())(void (*)(UnsafeSelfAllocateStackTracePrinter*))(
+          contextStart),
       /* argc */ 1,
       /* arg */ this);
   void* currentFakestack;
